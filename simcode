@@ -1,0 +1,270 @@
+from sr.robot3 import *
+
+robot = Robot()
+
+"""
+def drive(distance):
+    power = 0.7
+    speed = 1.238
+    time = distance/speed
+    
+    robot.motor_board.motors[0].power = power
+    robot.motor_board.motors[1].power = power
+    robot.sleep(time)
+    robot.motor_board.motors[0].power = 0
+    robot.motor_board.motors[1].power = 0
+"""
+def drive(distance, dir):
+    power = 1
+    speed = 1.767
+    time = distance/speed
+    if dir == "f":
+        robot.motor_board.motors[0].power = power
+        robot.motor_board.motors[1].power = power
+        robot.sleep(time)
+        robot.motor_board.motors[0].power = 0
+        robot.motor_board.motors[1].power = 0
+
+    elif dir == "b":
+        robot.motor_board.motors[0].power = -power
+        robot.motor_board.motors[1].power = -power
+        robot.sleep(time)
+        robot.motor_board.motors[0].power = 0
+        robot.motor_board.motors[1].power = 0
+
+    robot.sleep(1)
+
+def close_jaw():
+    robot.servo_board.servos[0].position = 0.6
+    robot.servo_board.servos[1].position = 0.6
+    robot.sleep(0.2)
+    robot.sleep(1)
+
+def open_jaw():
+    robot.servo_board.servos[0].position = -0.6
+    robot.servo_board.servos[1].position = -0.6
+    robot.sleep(0.2)
+    robot.sleep(1)
+
+def lifter(pos, dir):
+    if dir == "up":
+        robot.servo_board.servos[2].position = pos
+        robot.sleep(pos)
+    elif dir == "down":
+        robot.servo_board.servos[2].position = -pos
+        robot.sleep(pos)
+    robot.sleep(1)
+
+
+
+    
+
+def turn(angle, direction):
+    spinpower = 0.2
+    n_spinpower = -spinpower
+    runtime = 0.0078*angle
+
+    if direction == "right":
+        robot.motor_board.motors[0].power = spinpower           #turning n stuff 
+        robot.motor_board.motors[1].power = n_spinpower        #Haven't quite got the 90 degrees set up due to me being a lazy ass you guys can do it lol
+        robot.sleep(runtime)
+        robot.motor_board.motors[0].power = 0
+        robot.motor_board.motors[1].power = 0
+        robot.sleep(1)                                          #literally only here so the robot doesn't blow up or smthn 
+    
+    
+    if direction == "left":
+        robot.motor_board.motors[1].power = spinpower
+        robot.motor_board.motors[0].power = n_spinpower
+        robot.sleep(runtime)
+        robot.motor_board.motors[1].power = 0
+        robot.motor_board.motors[0].power = 0
+        robot.sleep(1)
+        print("turned left")
+
+    robot.sleep(1)
+
+def step1(dist):
+    drive(dist, "f")
+    close_jaw()
+    lifter(0.3, "up")
+    robot.sleep(1)
+    turn(180, "right")
+    drive(dist-0.27, "f")
+    robot.sleep(1)
+    turn(90, "left")
+    print("Picked box")
+    robot.sleep(1.5)
+    drive(0.8, "f")
+    robot.sleep(1.5)
+    lifter(0.4, "down")
+    robot.sleep(1)
+    drive(0.3, "f")
+    robot.sleep(1)
+    lifter(1, "up")
+    robot.sleep(1)
+    drive(0.25, "f")
+    robot.sleep(1)
+    open_jaw()
+    robot.sleep(1)
+    drive(0.5, "b")
+    robot.sleep(1)
+    lifter(1, "down")
+    robot.sleep(1)
+    drive(0.51, "b")
+    robot.sleep(1)
+    turn(91, "left")
+    robot.sleep(1)
+
+def step2(dist):
+    drive(dist, "f")
+    robot.sleep(1)
+    close_jaw()
+    robot.sleep(1)
+    turn(180, "right")
+    robot.sleep(1)
+    drive(dist-0.2, "f")
+    robot.sleep(1)
+    turn(92, "left")
+    robot.sleep(1)
+    lifter(0.4, "up")
+    robot.sleep(1)
+    drive(0.3, "f")
+    robot.sleep(1)
+    lifter(1, "up")
+    robot.sleep(1)
+    drive(0.31, "f")
+    robot.sleep(1)
+    open_jaw()
+    robot.sleep(1)
+
+def step3():
+    drive(0.5, "b")
+    robot.sleep(1)
+    lifter(1, "down")
+    robot.sleep(1)
+    drive(1.49, "b")
+    robot.sleep(1)
+    turn(90, "left")
+    robot.sleep(1)
+    drive(2.1, "f")
+    robot.sleep(1)
+    close_jaw()
+    robot.sleep(1)
+    turn(180, "right")
+    robot.sleep(1)
+    drive(2.3, "f")
+    robot.sleep(1)
+    turn(90, "left")
+    robot.sleep(1)
+    drive(1.35, "f")
+    robot.sleep(1)
+    lifter(1, "up")
+    robot.sleep(1)
+    drive(0.29, "f")
+    robot.sleep(1)
+    open_jaw()
+    robot.sleep(1)
+
+def get_egg():
+    drive(0.5, "b")
+    robot.sleep(1)
+    lifter(1, "down")
+    robot.sleep(1)
+    drive(1.46, "b")
+    robot.sleep(1)
+    turn(90, "left")
+    robot.sleep(1)
+    drive(2.5, "f")
+    robot.sleep(1)
+    lifter(0.5, "up")
+    robot.sleep(1)
+    drive(0.3, "f")
+    robot.sleep(1)
+    close_jaw()
+    robot.sleep(1)
+    turn(90, "right")
+    robot.sleep(1)
+    drive(3, "f")
+    robot.sleep(1)
+    open_jaw()
+    robot.sleep(1)
+
+
+
+
+def nearest_marker(step):
+    not_detected = True
+    already_picked = []
+    while not_detected:
+        marker_dict = {}
+        markers = robot.camera.see()
+        for marker in markers:
+            keys = marker.id
+            vals = (marker.position.distance)/1000 #in meters
+            if keys >= 150 and keys <= 199: #asteroid markers are numbered 150-199
+                marker_dict[keys] = vals
+                
+        closest_m_dist = min(marker_dict.values())
+        for id_num in marker_dict.keys():
+            if marker_dict[id_num] == closest_m_dist and id_num not in already_picked:
+                print(f"The closest marker has id {id_num} and distance {closest_m_dist}")
+                already_picked.append(id_num)
+                step(closest_m_dist)
+                not_detected = False
+  
+
+
+"""
+def drive_home():
+    markers = robot.camera.see()
+    print("computing spaceship location")
+    for marker in markers:
+        if marker.id in range(120, 124):
+            print(f"detected marker with id {marker.id}")
+            dist_home = (marker.position.distance)/1000 #meters 
+            print(f"distance home is {dist_home}") #distance home needs to be less than 0.753
+            drive(dist_home-0.3, "f")
+            print("Driven home")
+            break
+        else:
+            print("Spaceship not detected")
+            break
+"""
+"""       
+nearest_marker(step1)
+step2(2)
+step3()
+get_egg()
+"""
+
+drive(1.051, "f")
+close_jaw()
+turn(180, "right")
+drive(1.045, "f")
+turn(89, "left")
+drive(1.2, "f")
+open_jaw()
+drive(1.4, "b")
+turn(90, "left")
+drive(2.2, "f")
+close_jaw()
+turn(180, "right")
+drive(1.85, "f")
+turn(90, "left")
+drive(1.67, "f")
+open_jaw()
+drive(1.65, "b")
+turn(90, "left")
+drive(2.4, "f")
+close_jaw()
+turn(92, "right")
+drive(2.33, "f")
+open_jaw()
+
+#steal spaceship
+drive(2.33, "b")
+turn(90, "right")
+drive(2.35, "f")
+turn(90, "right")
+drive(2.35, "f")
